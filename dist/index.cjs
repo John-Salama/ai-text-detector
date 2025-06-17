@@ -474,4 +474,4 @@ exports.getBurstinessScore = getBurstinessScore;
 exports.getConfidenceScore = getConfidenceScore;
 exports.getPerplexityScore = getPerplexityScore;
 exports.isAIGenerated = isAIGenerated;
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=index.cjs.map
