@@ -45,7 +45,7 @@
     "browser",
     "nodejs"
   ],
-  "author": "Your Name <your.email@example.com>",
+  "author": "John Salama",
   "license": "MIT",
   "engines": {
     "node": ">=14.0.0"
@@ -63,10 +63,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/ai-text-detector.git"
+    "url": "https://github.com/John-Salama/ai-text-detector.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/ai-text-detector/issues"
+    "url": "https://github.com/John-Salama/ai-text-detector/issues"
   },
-  "homepage": "https://github.com/yourusername/ai-text-detector#readme"
+  "homepage": "https://github.com/John-Salama/ai-text-detector#readme"
 }
