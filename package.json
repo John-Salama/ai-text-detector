@@ -1,0 +1,72 @@
+{
+  "name": "ai-text-detector",
+  "version": "1.0.0",
+  "description": "A lightweight, fast JavaScript/TypeScript library for detecting AI-generated text using advanced linguistic analysis. Works in Node.js, React, and browser environments with zero dependencies.",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "echo 'No linting configured'",
+    "clean": "if exist dist rmdir /s /q dist",
+    "prebuild": "npm run clean",
+    "prepublishOnly": "npm run test && npm run build"
+  },
+  "keywords": [
+    "ai-detection",
+    "ai-generated-text",
+    "text-analysis",
+    "machine-learning",
+    "content-analysis",
+    "ai-generated",
+    "perplexity",
+    "burstiness",
+    "natural-language-processing",
+    "nlp",
+    "typescript",
+    "javascript",
+    "zero-dependencies",
+    "browser",
+    "nodejs"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@types/jest": "^29.0.0",
+    "jest": "^29.0.0",
+    "rollup": "^3.0.0",
+    "ts-jest": "^29.0.0",
+    "tslib": "^2.8.1",
+    "typescript": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/ai-text-detector.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/ai-text-detector/issues"
+  },
+  "homepage": "https://github.com/yourusername/ai-text-detector#readme"
+}

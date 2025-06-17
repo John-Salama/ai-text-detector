@@ -1,0 +1,15 @@
+{
+  "name": "test-package",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js",
+    "test:cjs": "node test-cjs.js",
+    "test:interactive": "node interactive-test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
