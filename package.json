@@ -1,6 +1,6 @@
 {
   "name": "ai-text-detector",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A lightweight, fast JavaScript/TypeScript library for detecting AI-generated text using advanced linguistic analysis. Works in Node.js, React, and browser environments with zero dependencies.",
   "type": "module",
   "main": "dist/index.cjs",
