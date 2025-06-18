@@ -6,6 +6,8 @@
 
 A lightweight, fast JavaScript/TypeScript library for detecting AI-generated text using advanced linguistic analysis. Features enhanced human text recognition, modern AI pattern detection, and adaptive thresholding. Works in both Node.js and browser environments with zero dependencies.
 
+## 🎯 [Try the Live Demo](https://ai-detector-demo.vercel.app/)
+
 ## Features
 
 - 🚀 **Lightweight** - Zero external dependencies, small bundle size

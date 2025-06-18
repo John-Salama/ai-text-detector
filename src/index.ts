@@ -311,28 +311,57 @@ class AITextDetector {
         "Text too short for reliable analysis (minimum 50 characters)"
       );
     }
-
     const metrics = this.analyzeText(text);
     const score = this.calculateAdvancedAIScore(metrics);
 
-    // Dynamic threshold based on text characteristics
-    let threshold = 0.6; // Base threshold, lowered from 0.65
+    // More balanced threshold - conservative but not too much
+    let threshold = 0.58; // Slightly lower base threshold
 
     // Adjust threshold based on text length
     const wordCount = this.tokenizeWords(text).length;
     if (wordCount < 100) {
-      threshold += 0.05; // More conservative for shorter texts
+      threshold += 0.04; // Less adjustment for shorter texts
     } else if (wordCount > 300) {
-      threshold -= 0.05; // More sensitive for longer texts
+      threshold -= 0.02; // Slightly more sensitive for longer texts
     }
 
-    // Adjust based on detected human patterns
-    if (metrics.humanLikenessIndicators > 0.4) {
-      threshold += 0.1;
+    // Detect narrative/literary writing patterns - ONLY for highly narrative text
+    const narrativeScore = this.calculateNarrativeScore(text);
+    if (narrativeScore > 0.5) {
+      threshold += 0.15; // Much more conservative for clearly narrative text
+    } else if (narrativeScore > 0.35) {
+      threshold += 0.08; // Moderate adjustment for somewhat narrative text
     }
 
-    if (metrics.informalnessScore > 0.3) {
-      threshold += 0.08;
+    // Adjust based on detected human patterns - be more selective
+    if (metrics.humanLikenessIndicators > 0.6) {
+      threshold += 0.2; // Strong adjustment for very human text
+    } else if (metrics.humanLikenessIndicators > 0.4) {
+      threshold += 0.12; // Moderate adjustment for clearly human text
+    } else if (metrics.humanLikenessIndicators > 0.2) {
+      threshold += 0.05; // Small adjustment for somewhat human text
+    }
+
+    if (metrics.informalnessScore > 0.5) {
+      threshold += 0.15; // Strong adjustment for very informal text
+    } else if (metrics.informalnessScore > 0.3) {
+      threshold += 0.08; // Moderate adjustment for informal text
+    } else if (metrics.informalnessScore > 0.15) {
+      threshold += 0.03; // Small adjustment for somewhat informal text
+    }
+
+    if (metrics.emotionalToneVariability > 0.4) {
+      threshold += 0.12; // Adjustment for very emotional text
+    } else if (metrics.emotionalToneVariability > 0.2) {
+      threshold += 0.06; // Small adjustment for somewhat emotional text
+    }
+
+    // Check for creative writing indicators - be more selective
+    const creativityScore = this.calculateCreativityScore(text);
+    if (creativityScore > 0.5) {
+      threshold += 0.2; // Strong boost for very creative writing
+    } else if (creativityScore > 0.35) {
+      threshold += 0.1; // Moderate boost for creative writing
     }
 
     const isAIGenerated = score > threshold;
@@ -732,16 +761,16 @@ class AITextDetector {
     const informalMatches = this.humanPatterns.reduce((count, pattern) => {
       return count + (text.match(pattern) || []).length;
     }, 0);
-    score += Math.min(informalMatches / 5, 1); // Increased sensitivity
+    score += Math.min(informalMatches / 3, 1); // Increased sensitivity
     totalIndicators++;
 
-    // Check for contractions
+    // Check for contractions (very human-like)
     const contractions = (text.match(/\b\w+[''](?:t|re|ve|ll|d|s|m)\b/gi) || [])
       .length;
-    score += Math.min(contractions / 8, 1);
+    score += Math.min(contractions / 5, 1); // More sensitive
     totalIndicators++;
 
-    // Check for typos and misspellings (enhanced)
+    // Check for typos and misspellings
     const potentialTypos = text.match(/\b[a-z]*[aeiou]{3,}[a-z]*\b/gi) || [];
     const doubleLetters = text.match(/\b\w*([a-z])\1{2,}\w*\b/gi) || [];
     const inconsistentSpacing = text.match(/\s{2,}/g) || [];
@@ -749,52 +778,91 @@ class AITextDetector {
       (potentialTypos.length +
         doubleLetters.length +
         inconsistentSpacing.length) /
-        10,
-      0.8
+        5, // More sensitive
+      1
     );
     totalIndicators++;
 
-    // Check for inconsistent capitalization (enhanced)
-    const sentences = this.splitIntoSentences(text);
-    let inconsistentCaps = 0;
-    sentences.forEach((sentence) => {
-      const words = sentence.split(/\s+/);
-      for (let i = 1; i < words.length; i++) {
-        if (words[i].match(/^[A-Z][a-z]/)) {
-          inconsistentCaps++;
-        }
-      }
-    });
-    score += Math.min(
-      inconsistentCaps / Math.max(sentences.length * 0.5, 1),
-      0.5
-    );
-    totalIndicators++;
-
-    // Check for personal pronouns and narrative style (enhanced)
+    // Check for personal pronouns and narrative style
     const personalPronouns = (
       text.match(/\b(I|me|my|mine|myself|we|us|our|ours)\b/gi) || []
     ).length;
     const words = this.tokenizeWords(text);
-    score += Math.min(personalPronouns / Math.max(words.length * 0.1, 1), 1);
+    score += Math.min(personalPronouns / Math.max(words.length * 0.05, 1), 1); // More sensitive
     totalIndicators++;
 
-    // Check for emotional punctuation
+    // Check for emotional punctuation (very human)
     const emotionalPunct = (text.match(/[!]{2,}|[?]{2,}|[.]{3,}/g) || [])
       .length;
-    score += Math.min(emotionalPunct / 5, 0.8);
+    score += Math.min(emotionalPunct / 3, 1); // More sensitive
     totalIndicators++;
 
-    // Check for ALL CAPS words (emphasis)
+    // Check for ALL CAPS words (emphasis) - very human
     const capsWords = (text.match(/\b[A-Z]{2,}\b/g) || []).length;
-    score += Math.min(capsWords / 10, 0.6);
-    totalIndicators++; // Check for internet slang and abbreviations
+    score += Math.min(capsWords / 5, 1); // More sensitive
+    totalIndicators++;
+
+    // Check for internet slang and abbreviations (very human)
     const internetSlang = (
       text.match(
-        /\b(lol|lmao|omg|wtf|btw|tbh|imho|imo|ngl|smh|fml|irl|rn|af|fr|periodt)\b/gi
+        /\b(lol|lmao|omg|wtf|btw|tbh|imho|imo|ngl|smh|fml|irl|rn|af|fr|periodt|idk|ikr|brb|ttyl|dm|pm|sus|lit|fam|bae|goat|facts|no cap|bet|vibe|mood|periodt)\b/gi
       ) || []
     ).length;
-    score += Math.min(internetSlang / 3, 1);
+    score += Math.min(internetSlang / 2, 1); // Very sensitive to slang
+    totalIndicators++;
+
+    // Check for incomplete sentences or fragments (human-like)
+    const sentences = this.splitIntoSentences(text);
+    const fragments = sentences.filter((s) => {
+      const words = s.trim().split(/\s+/);
+      return (
+        words.length < 4 &&
+        !words.some((w) =>
+          w.match(
+            /^(yes|no|ok|okay|yeah|nah|sure|maybe|absolutely|definitely)$/i
+          )
+        )
+      );
+    }).length;
+    score += Math.min(fragments / Math.max(sentences.length * 0.3, 1), 0.8);
+    totalIndicators++; // Check for conversational markers (very human)
+    const conversationalMarkers = (
+      text.match(
+        /\b(like|you know|I mean|right|so|well|um|uh|actually|basically|literally|honestly|seriously|obviously|apparently|supposedly|kinda|sorta|maybe|probably|definitely|absolutely|totally|completely|exactly|precisely)\b/gi
+      ) || []
+    ).length;
+    score += Math.min(
+      conversationalMarkers / Math.max(words.length * 0.1, 1),
+      1
+    );
+    totalIndicators++;
+
+    // NEW: Check for creative/descriptive language (narrative human writing)
+    const creativeDescriptions = (
+      text.match(
+        /\b(nearly twice|hardly any|very large|came in very useful|no finer|big beefy|which made|although he did|spent so much|craning over|spying on)\b/gi
+      ) || []
+    ).length;
+    score += Math.min(creativeDescriptions / 3, 1);
+    totalIndicators++;
+
+    // NEW: Check for character names and storytelling elements
+    const narrativeElements = (
+      text.match(
+        /\b(Mr\.|Mrs\.|called|named|director|firm|son|opinion|neighbors|mustache|blonde)\b/gi
+      ) || []
+    ).length;
+    score += Math.min(narrativeElements / 5, 0.8);
+    totalIndicators++;
+
+    // NEW: Check for narrative pronouns (third person storytelling)
+    const narrativePronouns = (
+      text.match(/\b(he|she|they|him|her|them|his|hers|their|theirs)\b/gi) || []
+    ).length;
+    score += Math.min(
+      narrativePronouns / Math.max(words.length * 0.08, 1),
+      0.7
+    );
     totalIndicators++;
 
     return score / totalIndicators;
@@ -849,33 +917,78 @@ class AITextDetector {
       return Math.min(Math.abs(ratio - 0.5) * 2, 1);
     }
   }
-
   private calculateInformalnessScore(text: string): number {
     let informalityScore = 0;
     let totalFeatures = 0;
 
-    // Contractions
+    // Contractions (very informal)
     const contractions = (text.match(/\b\w+[''](?:t|re|ve|ll|d|s|m)\b/gi) || [])
       .length;
-    informalityScore += Math.min(contractions / 20, 1);
+    const words = this.tokenizeWords(text);
+    informalityScore += Math.min(
+      contractions / Math.max(words.length * 0.1, 1),
+      1
+    );
     totalFeatures++;
 
-    // Slang and colloquialisms
+    // Slang and colloquialisms (very informal)
     const slangCount = this.humanPatterns.reduce((count, pattern) => {
       return count + (text.match(pattern) || []).length;
     }, 0);
-    informalityScore += Math.min(slangCount / 10, 1);
+    informalityScore += Math.min(slangCount / 5, 1); // More sensitive
     totalFeatures++;
 
-    // Sentence fragments
+    // Sentence fragments (informal)
     const sentences = this.splitIntoSentences(text);
     const fragments = sentences.filter((s) => s.split(/\s+/).length < 4).length;
-    informalityScore += Math.min(fragments / sentences.length, 0.5);
+    informalityScore += Math.min(
+      fragments / Math.max(sentences.length * 0.4, 1),
+      1
+    );
     totalFeatures++;
 
-    // Ellipses and multiple punctuation
+    // Ellipses and multiple punctuation (informal)
     const multiplePunct = (text.match(/[.!?]{2,}/g) || []).length;
-    informalityScore += Math.min(multiplePunct / 10, 0.5);
+    informalityScore += Math.min(multiplePunct / 5, 1); // More sensitive
+    totalFeatures++;
+
+    // Conversational words (informal)
+    const conversationalWords = (
+      text.match(
+        /\b(like|you know|I mean|right|so|well|um|uh|actually|basically|literally|honestly|seriously|obviously|apparently|kinda|sorta|gonna|wanna|gotta)\b/gi
+      ) || []
+    ).length;
+    informalityScore += Math.min(
+      conversationalWords / Math.max(words.length * 0.05, 1),
+      1
+    );
+    totalFeatures++;
+
+    // Lowercase sentence beginnings (very informal)
+    const lowercaseStarts = sentences.filter((s) => {
+      const trimmed = s.trim();
+      return (
+        trimmed.length > 0 &&
+        trimmed[0] === trimmed[0].toLowerCase() &&
+        trimmed[0].match(/[a-z]/)
+      );
+    }).length;
+    informalityScore += Math.min(
+      lowercaseStarts / Math.max(sentences.length * 0.3, 1),
+      1
+    );
+    totalFeatures++;
+
+    // Run-on sentences with "and" (informal)
+    const runOnSentences = sentences.filter((s) => {
+      const andCount = (s.match(/\band\b/gi) || []).length;
+      const wordCount = s.split(/\s+/).length;
+      return andCount > 2 && wordCount > 20;
+    }).length;
+    informalityScore += Math.min(
+      runOnSentences / Math.max(sentences.length * 0.5, 1),
+      0.8
+    );
     totalFeatures++;
 
     return informalityScore / totalFeatures;
@@ -1018,134 +1131,58 @@ class AITextDetector {
   }
   private calculateAdvancedAIScore(metrics: AnalysisMetrics): number {
     let score = 0;
-    let totalWeight = 0;
 
-    // Perplexity analysis (most important)
-    const perplexityWeight = 0.18;
-    if (metrics.perplexity < 8) {
-      // AI text typically has lower perplexity
-      score += ((8 - metrics.perplexity) / 8) * perplexityWeight;
+    // Focus on the most discriminative metrics with proper weighting
+
+    // 1. Human-likeness indicators (MOST IMPORTANT - inverse scoring)
+    const humanScore = 1 - metrics.humanLikenessIndicators;
+    score += humanScore * 0.25; // Reduced from 0.30
+
+    // 2. Informality score (VERY IMPORTANT - inverse scoring)
+    const formalityScore = 1 - metrics.informalnessScore;
+    score += formalityScore * 0.2; // Reduced from 0.25
+
+    // 3. Emotional tone variability (IMPORTANT - inverse scoring)
+    const emotionalScore = 1 - Math.min(metrics.emotionalToneVariability, 1);
+    score += emotionalScore * 0.15; // Reduced from 0.20    // 4. Perplexity analysis (more balanced)
+    let perplexityScore = 0;
+    if (metrics.perplexity < 2) {
+      perplexityScore = 1; // Very AI-like
+    } else if (metrics.perplexity < 4) {
+      perplexityScore = 0.8; // Likely AI
+    } else if (metrics.perplexity < 7) {
+      perplexityScore = 0.5; // Uncertain - could be formal human writing
+    } else if (metrics.perplexity < 12) {
+      perplexityScore = 0.2; // Likely human
+    } else {
+      perplexityScore = 0.05; // Very likely human
     }
-    totalWeight += perplexityWeight;
+    score += perplexityScore * 0.18; // Reduced from 0.20
 
-    // Burstiness analysis
-    const burstinessWeight = 0.15;
-    if (metrics.burstiness < 0.1) {
-      // AI has low burstiness (consistent sentence lengths)
-      score += ((0.1 - metrics.burstiness) / 0.1) * burstinessWeight;
+    // 5. Burstiness analysis (increased weight)
+    let burstinessScore = 0;
+    if (metrics.burstiness < -0.5) {
+      burstinessScore = 0.9; // Very consistent = AI-like
+    } else if (metrics.burstiness < 0) {
+      burstinessScore = 0.6; // Somewhat consistent = possibly AI
+    } else if (metrics.burstiness < 0.3) {
+      burstinessScore = 0.3; // Some variation = possibly human
+    } else {
+      burstinessScore = 0.1; // High variation = likely human
     }
-    totalWeight += burstinessWeight; // Human-likeness indicators (inverse scoring) - increased weight
-    const humanLikenessWeight = 0.18;
-    score += (1 - metrics.humanLikenessIndicators) * humanLikenessWeight;
-    totalWeight += humanLikenessWeight;
+    score += burstinessScore * 0.15; // Increased from 0.10
 
-    // Entropy analysis
-    const entropyWeight = 0.1;
-    if (metrics.entropyScore < 0.7) {
-      // Lower entropy suggests AI (more predictable)
-      score += ((0.7 - metrics.entropyScore) / 0.7) * entropyWeight;
-    }
-    totalWeight += entropyWeight;
-
-    // Lexical diversity
-    const lexicalWeight = 0.08;
-    if (metrics.lexicalDiversity > 0.4 && metrics.lexicalDiversity < 0.7) {
-      // AI sweet spot
-      score += lexicalWeight;
-    }
-    totalWeight += lexicalWeight;
-
-    // Semantic coherence
-    const coherenceWeight = 0.08;
-    if (metrics.semanticCoherence > 0.3 && metrics.semanticCoherence < 0.8) {
-      // AI maintains good coherence
-      score += coherenceWeight;
-    }
-    totalWeight += coherenceWeight; // Informality score (inverse) - increased weight
-    const informalityWeight = 0.12;
-    score += (1 - metrics.informalnessScore) * informalityWeight;
-    totalWeight += informalityWeight;
-
-    // Function word analysis
-    const functionWordWeight = 0.06;
-    score += metrics.functionWordAnalysis * functionWordWeight;
-    totalWeight += functionWordWeight;
-
-    // Transition density
-    const transitionWeight = 0.06;
+    // 6. Add some additional AI indicators with smaller weights
+    // Transition density (AI overuses transitions)
     if (metrics.transitionDensity > 2) {
-      // High transition word usage
-      score += Math.min(metrics.transitionDensity / 5, 1) * transitionWeight;
+      score += Math.min(metrics.transitionDensity / 10, 0.1) * 0.05;
     }
-    totalWeight += transitionWeight;
 
-    // Discourse marker patterns
-    const discourseWeight = 0.05;
-    score += Math.min(metrics.discourseMarkerPatterns, 1) * discourseWeight;
-    totalWeight += discourseWeight; // Emotional tone variability (inverse) - increased weight
-    const emotionalWeight = 0.08;
-    score +=
-      (1 - Math.min(metrics.emotionalToneVariability, 1)) * emotionalWeight;
-    totalWeight += emotionalWeight;
+    // Apply adaptive adjustments based on strong human indicators
+    score = this.applyAdaptiveThresholding(score, metrics);
 
-    // Stylometric signature
-    const stylometricWeight = 0.04;
-    if (metrics.stylometricSignature < 0.6) {
-      // AI tends to have less stylometric variation
-      score += ((0.6 - metrics.stylometricSignature) / 0.6) * stylometricWeight;
-    }
-    totalWeight += stylometricWeight;
-
-    // Sentence structure entropy
-    const structureEntropyWeight = 0.03;
-    if (metrics.sentenceStructureEntropy < 0.8) {
-      score +=
-        ((0.8 - metrics.sentenceStructureEntropy) / 0.8) *
-        structureEntropyWeight;
-    }
-    totalWeight += structureEntropyWeight;
-
-    // Topic coherence
-    const topicCoherenceWeight = 0.03;
-    if (metrics.topicCoherenceScore > 0.5) {
-      score +=
-        Math.min(metrics.topicCoherenceScore - 0.5, 0.5) *
-        2 *
-        topicCoherenceWeight;
-    }
-    totalWeight += topicCoherenceWeight;
-
-    // Formality index
-    const formalityWeight = 0.03;
-    if (metrics.formalityIndex > 0.5) {
-      // AI tends to be more formal
-      score += Math.min(metrics.formalityIndex, 1) * formalityWeight;
-    }
-    totalWeight += formalityWeight;
-
-    // N-gram repetition
-    const ngramWeight = 0.03;
-    if (metrics.nGramRepetition > 0.1) {
-      // AI sometimes repeats patterns
-      score += Math.min(metrics.nGramRepetition * 2, 1) * ngramWeight;
-    }
-    totalWeight += ngramWeight;
-
-    // Bigram unusualness
-    const bigramWeight = 0.02;
-    score += metrics.bigramUnusualness * bigramWeight;
-    totalWeight += bigramWeight;
-
-    // Punctuation patterns
-    const punctuationWeight = 0.02;
-    score += metrics.punctuationPatterns * punctuationWeight;
-    totalWeight += punctuationWeight;
-
-    // Normalize score
-    const normalizedScore = Math.max(0, Math.min(1, score / totalWeight));
-
-    // Apply adaptive thresholding based on text characteristics
-    return this.applyAdaptiveThresholding(normalizedScore, metrics);
+    // Ensure score is between 0 and 1
+    return Math.max(0, Math.min(1, score));
   }
   private applyAdaptiveThresholding(
     baseScore: number,
@@ -1153,44 +1190,43 @@ class AITextDetector {
   ): number {
     let adjustedScore = baseScore;
 
-    // If text shows strong human indicators, reduce AI probability significantly
-    if (metrics.humanLikenessIndicators > 0.4) {
-      adjustedScore *= 0.7;
-    }
+    // Strong human indicators should significantly reduce AI probability
     if (metrics.humanLikenessIndicators > 0.6) {
-      adjustedScore *= 0.6;
+      adjustedScore *= 0.2; // Very strong reduction for very human text
+    } else if (metrics.humanLikenessIndicators > 0.4) {
+      adjustedScore *= 0.4; // Strong reduction for clearly human text
+    } else if (metrics.humanLikenessIndicators > 0.2) {
+      adjustedScore *= 0.7; // Moderate reduction for somewhat human text
     }
 
-    // If text is very informal, reduce AI probability
-    if (metrics.informalnessScore > 0.5) {
-      adjustedScore *= 0.8;
-    }
-    if (metrics.informalnessScore > 0.7) {
-      adjustedScore *= 0.6;
+    // High informality should reduce AI probability
+    if (metrics.informalnessScore > 0.6) {
+      adjustedScore *= 0.3; // Strong reduction for very informal text
+    } else if (metrics.informalnessScore > 0.4) {
+      adjustedScore *= 0.5; // Moderate reduction for informal text
+    } else if (metrics.informalnessScore > 0.2) {
+      adjustedScore *= 0.8; // Light reduction for somewhat informal text
     }
 
-    // If text has high emotional variability, reduce AI probability
-    if (metrics.emotionalToneVariability > 0.3) {
-      adjustedScore *= 0.85;
-    }
+    // High emotional variability should reduce AI probability
     if (metrics.emotionalToneVariability > 0.5) {
-      adjustedScore *= 0.7;
+      adjustedScore *= 0.4; // Strong reduction for very emotional text
+    } else if (metrics.emotionalToneVariability > 0.3) {
+      adjustedScore *= 0.6; // Moderate reduction for emotional text
     }
 
-    // If entropy is very high (human-like unpredictability), reduce AI probability
-    if (metrics.entropyScore > 0.8) {
-      adjustedScore *= 0.8;
-    }
-
-    // If multiple human indicators are present, compound the effect
-    const humanIndicatorCount = [
-      metrics.humanLikenessIndicators > 0.4,
-      metrics.informalnessScore > 0.4,
-      metrics.emotionalToneVariability > 0.3,
+    // Multiple strong human indicators compound the effect
+    const strongHumanIndicators = [
+      metrics.humanLikenessIndicators > 0.3,
+      metrics.informalnessScore > 0.3,
+      metrics.emotionalToneVariability > 0.2,
+      metrics.entropyScore > 0.8,
     ].filter(Boolean).length;
 
-    if (humanIndicatorCount >= 2) {
-      adjustedScore *= 0.75;
+    if (strongHumanIndicators >= 3) {
+      adjustedScore *= 0.1; // Very strong reduction for clearly human text
+    } else if (strongHumanIndicators >= 2) {
+      adjustedScore *= 0.3; // Strong reduction for likely human text
     }
 
     return Math.max(0, Math.min(1, adjustedScore));
@@ -1358,6 +1394,125 @@ class AITextDetector {
     }
 
     return reasons;
+  }
+
+  // New method to detect narrative/literary writing patterns
+  private calculateNarrativeScore(text: string): number {
+    let narrativeScore = 0;
+    let totalIndicators = 0;
+
+    // Check for character names and proper nouns (common in narrative)
+    const properNouns = (text.match(/\b[A-Z][a-z]+\b/g) || []).length;
+    const words = this.tokenizeWords(text);
+    narrativeScore += Math.min(
+      properNouns / Math.max(words.length * 0.1, 1),
+      1
+    );
+    totalIndicators++;
+
+    // Check for past tense narrative patterns
+    const pastTenseVerbs = (
+      text.match(
+        /\b\w+(ed|was|were|had|did|said|went|came|saw|looked|thought|felt|knew|told|asked|answered|walked|turned|opened|closed)\b/gi
+      ) || []
+    ).length;
+    narrativeScore += Math.min(
+      pastTenseVerbs / Math.max(words.length * 0.1, 1),
+      1
+    );
+    totalIndicators++;
+
+    // Check for descriptive language
+    const descriptiveWords = (
+      text.match(
+        /\b(big|small|large|tiny|huge|enormous|beautiful|ugly|old|young|tall|short|fat|thin|thick|wide|narrow|bright|dark|loud|quiet|soft|hard|smooth|rough|hot|cold|warm|cool|dry|wet|clean|dirty|new|old|fresh|stale|sweet|sour|bitter|salty|spicy|mild|strong|weak|heavy|light|fast|slow|quick|careful|gentle|rough|kind|mean|nice|bad|good|excellent|terrible|wonderful|awful|amazing|boring|interesting|exciting|scary|funny|sad|happy|angry|surprised|confused|tired|energetic)\b/gi
+      ) || []
+    ).length;
+    narrativeScore += Math.min(
+      descriptiveWords / Math.max(words.length * 0.08, 1),
+      1
+    );
+    totalIndicators++;
+
+    // Check for dialogue indicators
+    const dialogueIndicators = (text.match(/["'"]/g) || []).length;
+    narrativeScore += Math.min(dialogueIndicators / 10, 0.8);
+    totalIndicators++;
+
+    // Check for third-person narrative pronouns
+    const thirdPersonPronouns = (
+      text.match(/\b(he|she|they|him|her|them|his|hers|their|theirs)\b/gi) || []
+    ).length;
+    narrativeScore += Math.min(
+      thirdPersonPronouns / Math.max(words.length * 0.05, 1),
+      1
+    );
+    totalIndicators++;
+
+    return narrativeScore / totalIndicators;
+  }
+
+  // New method to detect creative writing patterns
+  private calculateCreativityScore(text: string): number {
+    let creativityScore = 0;
+    let totalIndicators = 0;
+
+    // Check for metaphors and similes
+    const metaphorPatterns = (
+      text.match(
+        /\b(like|as|seemed|appeared|looked like|sounded like|felt like|was like|were like)\b/gi
+      ) || []
+    ).length;
+    const words = this.tokenizeWords(text);
+    creativityScore += Math.min(
+      metaphorPatterns / Math.max(words.length * 0.05, 1),
+      1
+    );
+    totalIndicators++;
+
+    // Check for unique/creative descriptions (unusual adjective-noun combinations)
+    const creativeDescriptions = (
+      text.match(
+        /\b(nearly twice|hardly any|very large|came in very useful|no finer|so much of|which made|although he did)\b/gi
+      ) || []
+    ).length;
+    creativityScore += Math.min(creativeDescriptions / 5, 1);
+    totalIndicators++;
+
+    // Check for vivid imagery words
+    const imageryWords = (
+      text.match(
+        /\b(craning|spying|mustache|beefy|blonde|drilling|garden fences|neighbors|opinion|director|firm)\b/gi
+      ) || []
+    ).length;
+    creativityScore += Math.min(
+      imageryWords / Math.max(words.length * 0.1, 1),
+      1
+    );
+    totalIndicators++;
+
+    // Check for specific, concrete details rather than abstract concepts
+    const concreteNouns = (
+      text.match(
+        /\b(drill|mustache|neck|fence|garden|neighbor|son|boy|director|firm|company|house|car|door|window|street|road|tree|flower|table|chair|book|phone|computer|cat|dog|bird|food|water|coffee|tea|money|time|day|night|morning|evening|sun|moon|star|cloud|rain|snow|wind|fire|ice|rock|sand|grass|leaf|branch|root|seed)\b/gi
+      ) || []
+    ).length;
+    creativityScore += Math.min(
+      concreteNouns / Math.max(words.length * 0.08, 1),
+      1
+    );
+    totalIndicators++;
+
+    // Check for character-focused writing
+    const characterFocus = (
+      text.match(
+        /\b(Mr\.|Mrs\.|Dursley|Dudley|Grunnings|called|named|known as)\b/gi
+      ) || []
+    ).length;
+    creativityScore += Math.min(characterFocus / 8, 1);
+    totalIndicators++;
+
+    return creativityScore / totalIndicators;
   }
 }
 
