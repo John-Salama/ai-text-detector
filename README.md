@@ -4,17 +4,20 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
 
-A lightweight, fast JavaScript/TypeScript library for detecting AI-generated text using advanced linguistic analysis. Works in both Node.js and browser environments with zero dependencies.
+A lightweight, fast JavaScript/TypeScript library for detecting AI-generated text using advanced linguistic analysis. Features enhanced human text recognition, modern AI pattern detection, and adaptive thresholding. Works in both Node.js and browser environments with zero dependencies.
 
 ## Features
 
 - 🚀 **Lightweight** - Zero external dependencies, small bundle size
-- 🔍 **Accurate** - Uses 15+ linguistic analysis techniques including perplexity and burstiness
+- 🔍 **Accurate** - Uses 25+ linguistic analysis techniques including advanced perplexity and burstiness
 - 🌐 **Universal** - Works in Node.js, React, Vue, Angular, and browser environments
 - 📝 **TypeScript** - Full TypeScript support with comprehensive type definitions
 - ⚡ **Fast** - Efficient pattern matching and analysis algorithms
 - 🧠 **Smart** - Advanced analysis of sentence structure, vocabulary patterns, and writing style
 - 📊 **Detailed** - Provides confidence scores, reasoning, and detailed metrics
+- 🎯 **Enhanced Human Detection** - Improved recognition of informal, casual, and emotional human writing
+- 🔬 **Advanced AI Pattern Recognition** - Detects modern AI writing patterns and phrases
+- 🏷️ **Adaptive Analysis** - Dynamic thresholding based on text characteristics
 
 ## Installation
 
@@ -213,17 +216,40 @@ Returns just the confidence score for the detection.
 
 ## How It Works
 
-This library uses multiple linguistic analysis techniques to detect AI-generated text:
+This library uses multiple advanced linguistic analysis techniques to detect AI-generated text:
 
-- **Perplexity Analysis**: Measures how predictable the text is
-- **Burstiness Analysis**: Analyzes sentence-to-sentence variation
-- **Vocabulary Richness**: Examines word diversity and complexity
-- **Syntactic Complexity**: Analyzes sentence structure patterns
-- **Semantic Coherence**: Measures logical flow and consistency
+### Core Analysis Methods
+
+- **Advanced Perplexity Analysis**: Enhanced trigram-based model with interpolation to measure text predictability
+- **Burstiness Analysis**: Analyzes sentence-to-sentence variation and consistency patterns
+- **Entropy Scoring**: Measures word choice predictability (AI tends to be more predictable)
+- **Human-likeness Indicators**: Detects informal language, typos, contractions, and emotional expressions
+- **Stylometric Analysis**: Examines writing style consistency and variation patterns
+
+### Enhanced Pattern Recognition
+
+- **Modern AI Pattern Detection**: Recognizes phrases like "it's worth noting", "as we delve into", "in today's digital age"
+- **Informal Language Recognition**: Detects slang, internet abbreviations, contractions, and casual expressions
+- **Emotional Tone Analysis**: Measures emotional expression variability and personal narrative styles
+- **Discourse Marker Analysis**: Identifies overuse of transition words typical in AI-generated text
+- **Function Word Distribution**: Analyzes patterns in common word usage that differ between AI and human writing
+
+### Traditional Linguistic Analysis
+
+- **Vocabulary Richness**: Examines word diversity and complexity patterns
+- **Syntactic Complexity**: Analyzes sentence structure and grammatical patterns
+- **Semantic Coherence**: Measures logical flow and contextual consistency
 - **N-gram Repetition**: Detects repetitive patterns common in AI text
-- **Transition Word Usage**: Analyzes overuse of connecting words
-- **Formality Index**: Measures writing formality level
-- **Contextual Consistency**: Checks for contextual coherence
+- **Contextual Consistency**: Advanced checking for semantic and thematic coherence
+- **Sentence Structure Entropy**: Evaluates variety in sentence construction
+- **Topic Coherence Scoring**: Measures semantic consistency across text segments
+
+### Adaptive Intelligence
+
+- **Dynamic Thresholding**: Adjusts detection sensitivity based on text characteristics
+- **Multi-dimensional Scoring**: Combines multiple indicators with optimized weights
+- **Compound Effect Analysis**: Multiple human indicators work together for better accuracy
+- **Contextual Awareness**: Understands different writing contexts and styles
 
 ## Performance
 
@@ -251,11 +277,16 @@ The library analyzes various linguistic patterns commonly found in AI-generated 
 
 ## Accuracy Notes
 
-- This library uses heuristic analysis and pattern matching
-- It's designed to catch common AI writing patterns but may not detect all AI-generated content
+- **Enhanced Accuracy**: Version 1.0.3+ includes significant improvements in detecting both AI and human text
+- **Improved Informal Text Detection**: Better recognition of casual, emotional, and conversational human writing
+- **Reduced False Positives**: Significantly fewer false positives on informal human content
+- **Modern AI Recognition**: Enhanced detection of contemporary AI writing patterns and phrases
+- **Adaptive Analysis**: Dynamic thresholding adjusts based on text characteristics for better accuracy
+- **Contextual Awareness**: Better understanding of different writing contexts and styles
+- This library uses advanced heuristic analysis and pattern matching techniques
 - Results should be used as a guide rather than definitive proof
-- Accuracy may vary depending on the AI model that generated the text
-- Human-written text with formal writing styles might sometimes trigger false positives
+- Accuracy continues to improve with each version as new AI patterns are identified
+- Human-written formal text may occasionally trigger detection, but this has been significantly reduced
 
 ## Contributing
 
@@ -266,6 +297,17 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 MIT License - see LICENSE file for details.
 
 ## Changelog
+
+### 1.0.3 (2025-06-18)
+
+- **Enhanced Detection**: Significantly improved accuracy for both AI and human text
+- **Better Human Recognition**: Advanced detection of informal, casual, and emotional writing
+- **Modern AI Patterns**: Enhanced recognition of contemporary AI writing styles
+- **Advanced Metrics**: Added entropy analysis, human-likeness indicators, and stylometric analysis
+- **Adaptive Thresholding**: Dynamic detection sensitivity based on text characteristics
+- **Improved Algorithms**: Enhanced perplexity calculation with trigram models
+- **Reduced False Positives**: Better handling of informal human content
+- **Backward Compatible**: All existing APIs unchanged
 
 ### 1.0.0
 
