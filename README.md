@@ -37,11 +37,13 @@ import {
   getConfidenceScore,
 } from "ai-text-detector";
 
-const text =
+const longText =
   "Furthermore, it is important to note that artificial intelligence has significantly enhanced various operational processes across multiple industries.";
 
-// Get detailed analysis
-const result = detectAIText(text);
+const shortText = "Hello world!";
+
+// Get detailed analysis for longer text
+const result = detectAIText(longText);
 console.log(result);
 // {
 //   isAIGenerated: true,
@@ -53,13 +55,54 @@ console.log(result);
 //   score: 0.75
 // }
 
-// Quick boolean check
-const isAI = isAIGenerated(text);
-console.log(isAI); // true
+// Handle short text (less than 50 characters)
+try {
+  const shortResult = detectAIText(shortText);
+  console.log(shortResult);
+} catch (error) {
+  console.log("Error:", error.message);
+  // Output: "Error: Text too short for reliable analysis (minimum 50 characters)"
+}
 
-// Get just the confidence score
-const confidence = getConfidenceScore(text);
-console.log(confidence); // 0.75
+// Alternative: Check text length before analysis
+function safeDetectAI(text) {
+  if (text.trim().length < 50) {
+    return {
+      isAIGenerated: false,
+      confidence: 0,
+      reasons: ["Text too short for reliable analysis"],
+      score: 0,
+      error: "Minimum 50 characters required",
+    };
+  }
+  return detectAIText(text);
+}
+
+const safeResult = safeDetectAI(shortText);
+console.log(safeResult);
+// {
+//   isAIGenerated: false,
+//   confidence: 0,
+//   reasons: ["Text too short for reliable analysis"],
+//   score: 0,
+//   error: "Minimum 50 characters required"
+// }
+
+// Quick boolean check (also throws error for short text)
+try {
+  const isAI = isAIGenerated(longText);
+  console.log(isAI); // true
+} catch (error) {
+  console.log("Error:", error.message);
+}
+
+// Get confidence score with error handling
+try {
+  const confidence = getConfidenceScore(longText);
+  console.log(confidence); // 0.75
+} catch (error) {
+  console.log("Error:", error.message);
+}
 ```
 
 ### Node.js Usage
@@ -122,7 +165,7 @@ Analyzes the provided text and returns a detailed detection result.
 
 **Parameters:**
 
-- `text` (string): The text to analyze
+- `text` (string): The text to analyze (minimum 50 characters required)
 
 **Returns:**
 
@@ -132,17 +175,25 @@ Analyzes the provided text and returns a detailed detection result.
   - `reasons` (string[]): Array of reasons explaining the detection
   - `score` (number): Raw detection score
 
+**Throws:**
+
+- `Error`: When text is empty or less than 50 characters
+
 ### `isAIGenerated(text: string): boolean`
 
 Quick check to determine if text is likely AI-generated.
 
 **Parameters:**
 
-- `text` (string): The text to analyze
+- `text` (string): The text to analyze (minimum 50 characters required)
 
 **Returns:**
 
 - `boolean`: True if likely AI-generated, false otherwise
+
+**Throws:**
+
+- `Error`: When text is empty or less than 50 characters
 
 ### `getConfidenceScore(text: string): number`
 
@@ -150,70 +201,15 @@ Returns just the confidence score for the detection.
 
 **Parameters:**
 
-- `text` (string): The text to analyze
+- `text` (string): The text to analyze (minimum 50 characters required)
 
 **Returns:**
 
 - `number`: Confidence score between 0 and 1
 
-## API Reference
+**Throws:**
 
-### `detectAIText(text: string): DetectionResult`
-
-Analyzes the provided text and returns a comprehensive detection result.
-
-**Parameters:**
-
-- `text` (string): The text to analyze
-
-**Returns:** `DetectionResult` object with the following properties:
-
-- `isAIGenerated` (boolean): Whether the text is likely AI-generated
-- `confidence` (number): Confidence score between 0 and 1
-- `reasons` (string[]): Array of reasons for the detection result
-- `score` (number): Overall AI detection score
-- `perplexityScore` (number): Perplexity analysis score
-- `burstinessScore` (number): Burstiness analysis score
-
-### `isAIGenerated(text: string): boolean`
-
-Quick check to determine if text is AI-generated.
-
-**Parameters:**
-
-- `text` (string): The text to analyze
-
-**Returns:** Boolean indicating if the text is likely AI-generated
-
-### `getConfidenceScore(text: string): number`
-
-Returns the confidence score for AI detection.
-
-**Parameters:**
-
-- `text` (string): The text to analyze
-
-**Returns:** Number between 0 and 1 representing confidence
-
-### `getPerplexityScore(text: string): number`
-
-Returns the perplexity score of the text.
-
-**Parameters:**
-
-- `text` (string): The text to analyze
-
-**Returns:** Number representing perplexity (lower = more AI-like)
-
-### `getBurstinessScore(text: string): number`
-
-Returns the burstiness score of the text.
-
-**Parameters:**
-
-- `text` (string): The text to analyze
-
-**Returns:** Number representing burstiness (lower = more AI-like)
+- `Error`: When text is empty or less than 50 characters
 
 ## How It Works
 
