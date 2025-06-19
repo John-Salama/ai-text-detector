@@ -580,8 +580,7 @@ function calculateHumanLikenessIndicators(text) {
     score += Math.min(personalPronouns / Math.max(words.length * 0.05, 1), 1); // More sensitive
     totalIndicators++;
     // Check for emotional punctuation (very human)
-    const emotionalPunct = (text.match(/[!]{2,}|[?]{2,}|[.]{3,}/g) || [])
-        .length;
+    const emotionalPunct = (text.match(/[!]{2,}|[?]{2,}|[.]{3,}/g) || []).length;
     score += Math.min(emotionalPunct / 3, 1); // More sensitive
     totalIndicators++;
     // Check for ALL CAPS words (emphasis) - very human
@@ -1042,7 +1041,8 @@ class AITextDetector {
         if (analysisMetrics.informalnessScore < 0.2) {
             reasons.push(`Low informality score (${analysisMetrics.informalnessScore.toFixed(2)}) suggests formal, AI-like writing style`);
         }
-        if (analysisMetrics.lexicalDiversity > 0.4 && analysisMetrics.lexicalDiversity < 0.7) {
+        if (analysisMetrics.lexicalDiversity > 0.4 &&
+            analysisMetrics.lexicalDiversity < 0.7) {
             reasons.push(`Lexical diversity (${analysisMetrics.lexicalDiversity.toFixed(2)}) falls within AI-typical range`);
         }
         if (analysisMetrics.transitionDensity > 2) {
@@ -1152,7 +1152,7 @@ var index = {
     isAIGenerated,
     getConfidenceScore,
     getPerplexityScore,
-    getBurstinessScore
+    getBurstinessScore,
 };
 
 exports.AITextDetector = AITextDetector;

@@ -2,10 +2,10 @@
  * AI Text Detector - Main entry point
  * Refactored for better maintainability and modularity
  */
-import { DetectionResult } from './types';
-import { AITextDetector } from './detector';
-export { AITextDetector } from './detector';
-export { DetectionResult, AnalysisMetrics } from './types';
+import { DetectionResult } from "./types";
+import { AITextDetector } from "./detector";
+export { AITextDetector } from "./detector";
+export { DetectionResult, AnalysisMetrics } from "./types";
 /**
  * Convenience function to detect AI-generated text
  * @param text - The text to analyze
